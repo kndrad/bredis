@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net"
 	"os"
 )
@@ -15,14 +16,14 @@ func main() {
 	print("TCP Listening on: ", ":"+*port)
 	lis, err := net.Listen("tcp", ":"+*port)
 	if err != nil {
-		print(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Start receiving requests
 	conn, err := lis.Accept()
 	if err != nil {
-		print(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
