@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"os"
 )
@@ -37,6 +39,9 @@ func main() {
 
 		// Read message from client
 		if _, err := conn.Read(buf); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			fmt.Println(err)
 		}
 
