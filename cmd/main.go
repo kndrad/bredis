@@ -46,7 +46,7 @@ func main() {
 		}
 
 		// Send back 'PONG'
-		msg := []byte("+OK\r\n")
+		msg := []byte("+OK (pong)\r\n")
 		if _, err := conn.Write(msg); err != nil {
 			fmt.Println(err)
 		}
