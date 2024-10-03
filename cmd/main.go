@@ -55,55 +55,28 @@ func main() {
 		}
 	}
 
-	// Create input
+	// Read RESP input
 	input := "$5\r\nMagda\r\n"
-	reader := bufio.NewReader(strings.NewReader(input))
 
-	// Read the RESP string to determine number of characters we need to read.
-	// Above is 5, plus additional 2 bytes.
-	b, err := reader.ReadByte()
+	name, err := ReadRESP(input)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	if b != '$' {
-		fmt.Printf("Invalid first byte type, expecting bulk strings only.\n")
+		fmt.Printf("Error: %v", err)
 	}
 
-	// Determine number of characters in a string.
-	size, err := reader.ReadByte()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	strSize, err := strconv.ParseInt(string(size), 10, 64)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	// Consume /r/n to get rid of 2 bytes '\r\n' that follows the number.
-	if _, err := reader.ReadByte(); err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	if _, err := reader.ReadByte(); err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	name := make([]byte, strSize)
-	if _, err := reader.Read(name); err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-
-	fmt.Println(string(name))
+	fmt.Println(name)
 }
 
-var ErrEmptyRespInput = errors.New("ReadRESP: empty string input")
+var ErrEmptyRESP = errors.New("ReadRESP: empty input")
 
-// ReadResp first reads the string to determine number of characters we need to read.
+// ReadRESP first reads the string to determine number of characters we need to read.
 // For example "Magda" is 5, plus additional 2 bytes.
 //
 // Then, consumes /r/n to get rid of 2 bytes '\r\n' that follows the number.
 //
 // Finally, returns the string.
-func ReadResp(input string) (string, error) {
+func ReadRESP(input string) (string, error) {
 	if input == "" {
-		return "", ErrEmptyRespInput
+		return "", ErrEmptyRESP
 	}
 
 	reader := bufio.NewReader(strings.NewReader(input))
