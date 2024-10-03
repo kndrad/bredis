@@ -1,4 +1,5 @@
 base:
+	./scripts/stop.sh
 	./scripts/format.sh
 	./scripts/check.sh
 

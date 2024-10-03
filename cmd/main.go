@@ -53,10 +53,12 @@ func main() {
 	}
 }
 
-func gracefulShutdown(closeConn func() error) func() {
+func gracefulShutdown(funcs ...func() error) func() {
 	return func() {
-		if err := closeConn(); err != nil {
-			fmt.Println(err)
+		for _, f := range funcs {
+			if err := f(); err != nil {
+				fmt.Println(err)
+			}
 		}
 		os.Exit(1)
 	}
