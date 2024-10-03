@@ -93,6 +93,51 @@ func main() {
 	fmt.Println(string(name))
 }
 
+var ErrEmptyRespInput = errors.New("ReadRESP: empty string input")
+
+// ReadResp first reads the string to determine number of characters we need to read.
+// For example "Magda" is 5, plus additional 2 bytes.
+//
+// Then, consumes /r/n to get rid of 2 bytes '\r\n' that follows the number.
+//
+// Finally, returns the string.
+func ReadResp(input string) (string, error) {
+	if input == "" {
+		return "", ErrEmptyRespInput
+	}
+
+	reader := bufio.NewReader(strings.NewReader(input))
+
+	b, err := reader.ReadByte()
+	if err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+	if b != '$' {
+		return "", fmt.Errorf("ReadRESP: Invalid first byte type, expecting bulk strings only: %w", err)
+	}
+
+	size, err := reader.ReadByte()
+	if err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+	strSize, err := strconv.ParseInt(string(size), 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+	if _, err := reader.ReadByte(); err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+	if _, err := reader.ReadByte(); err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+	name := make([]byte, strSize)
+	if _, err := reader.Read(name); err != nil {
+		return "", fmt.Errorf("ReadRESP: %w", err)
+	}
+
+	return string(name), nil
+}
+
 func gracefulShutdown(funcs ...func() error) func() {
 	return func() {
 		for _, f := range funcs {
