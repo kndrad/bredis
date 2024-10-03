@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 )
 
 var port = flag.String("port", "6379", "tcp port")
@@ -51,6 +54,43 @@ func main() {
 			fmt.Println(err)
 		}
 	}
+
+	// Create input
+	input := "$5\r\nMagda\r\n"
+	reader := bufio.NewReader(strings.NewReader(input))
+
+	// Read the RESP string to determine number of characters we need to read.
+	// Above is 5, plus additional 2 bytes.
+	b, err := reader.ReadByte()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	if b != '$' {
+		fmt.Printf("Invalid first byte type, expecting bulk strings only.\n")
+	}
+
+	// Determine number of characters in a string.
+	size, err := reader.ReadByte()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	strSize, err := strconv.ParseInt(string(size), 10, 64)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	// Consume /r/n to get rid of 2 bytes '\r\n' that follows the number.
+	if _, err := reader.ReadByte(); err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	if _, err := reader.ReadByte(); err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	name := make([]byte, strSize)
+	if _, err := reader.Read(name); err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+
+	fmt.Println(string(name))
 }
 
 func gracefulShutdown(funcs ...func() error) func() {
